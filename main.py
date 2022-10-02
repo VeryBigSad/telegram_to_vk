@@ -15,8 +15,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
-TELEGRAM_CHANNEL_URL = os.getenv('TELEGRAM_CHANNEL_URL')
-TELEGRAM_CHANNEL_ID = int(os.getenv('TELEGRAM_CHANNEL_ID'))
+TELEGRAM_CHANNEL_USERNAME = os.getenv('TELEGRAM_CHANNEL_USERNAME')
 VK_API_TOKEN = os.getenv('VK_API_TOKEN')
 VK_GROUP_ID = os.getenv('VK_GROUP_ID')
 
@@ -71,7 +70,7 @@ def create_vk_post(text: str, message_id, photo_list=None, video_list=None):
 
     post = vk.wall.post(
         message=text, from_group=1, attachments=attachments,
-        owner_id=f'-{VK_GROUP_ID}', copyright=f'{TELEGRAM_CHANNEL_URL}{message_id}'
+        owner_id=f'-{VK_GROUP_ID}', copyright=f'https://{TELEGRAM_CHANNEL_USERNAME}.t.me/{message_id}'
     )
 
     add_entry(message_id, post['post_id'])
@@ -87,7 +86,7 @@ def edit_vk_post(post_id, new_text, message_id):
     # edit it
     vk.wall.edit(
         message=new_text, post_id=post_id, from_group=1,
-        owner_id=f'-{VK_GROUP_ID}', copyright=f'{TELEGRAM_CHANNEL_URL}{message_id}',
+        owner_id=f'-{VK_GROUP_ID}', copyright=f'https://{TELEGRAM_CHANNEL_USERNAME}.t.me/{message_id}',
         attachments=attachments
     )
 
@@ -96,7 +95,7 @@ def edit_vk_post(post_id, new_text, message_id):
 @media_group_handler
 async def album_handler(messages: List[types.Message]):
     # album handler - many photos/videos
-    if messages[0].chat.id != TELEGRAM_CHANNEL_ID:
+    if messages[0].chat.username != TELEGRAM_CHANNEL_USERNAME:
         logging.info('someone sent a message from a chat that is not the one that I monitor')
         return
 
@@ -125,7 +124,7 @@ async def album_handler(messages: List[types.Message]):
 @dp.channel_post_handler(content_types=['photo', 'video'])
 async def photo_video_handler(message: types.Message):
     # only 1 photo / only 1 video
-    if message.chat.id != TELEGRAM_CHANNEL_ID:
+    if message.chat.username != TELEGRAM_CHANNEL_USERNAME:
         logging.info('someone sent a message from a chat that is not the one that I monitor')
         return
     text = None
@@ -149,7 +148,7 @@ async def photo_video_handler(message: types.Message):
 @dp.channel_post_handler(content_types=ContentType.ANY)
 async def message_handler(message: types.Message):
     # text only message
-    if message.chat.id != TELEGRAM_CHANNEL_ID:
+    if message.chat.username != TELEGRAM_CHANNEL_USERNAME:
         logging.info('someone sent a message from a chat that is not the one that I monitor')
         return
     create_vk_post(message.text, message_id=message.message_id)
@@ -157,6 +156,9 @@ async def message_handler(message: types.Message):
 
 @dp.edited_channel_post_handler(content_types=ContentType.ANY)
 async def message_edited_handler(message: types.Message):
+    if message.chat.username != TELEGRAM_CHANNEL_USERNAME:
+        logging.info('someone sent a message from a chat that is not the one that I monitor')
+        return
     try:
         post_id = get_entry(message.message_id)
     except KeyError:
