@@ -131,11 +131,11 @@ async def handle_album(message: types.Message, album: List[types.Message] = None
                 text = msg.caption
             if msg.photo:
                 path = f"./files/photo_{random_number}_{c}.jpg"
-                await msg.photo[-1].download(destination_file=path)
+                await bot.download_file(msg.photo[-1].file_id, path)
                 photo_list.append(path)
             elif msg.video:
                 path = f"./files/video_{random_number}_{c}.mp4"
-                await msg.video.download(destination_file=path)
+                await bot.download_file(msg.video.file_id, path)
                 video_list.append(path)
             c += 1
 
@@ -154,13 +154,13 @@ async def handle_album(message: types.Message, album: List[types.Message] = None
 
         if message.photo:
             path = f"./files/photo_{random_number}.jpg"
-            await message.photo[-1].download(destination_file=path)
+            await bot.download_file(message.photo[-1].file_id, path)
             create_vk_post(
                 text=text or "", message_id=message.message_id, photo_list=[path]
             )
         elif message.video:
             path = f"./files/video_{random_number}.mp4"
-            await message.video.download(destination_file=path)
+            await bot.download_file(message.video.file_id, path)
             create_vk_post(
                 text=text or "", message_id=message.message_id, video_list=[path]
             )
