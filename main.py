@@ -199,6 +199,9 @@ async def message_edited_handler(message: types.Message):
 
 
 async def main():
+    # if files dir does not exist, create it
+    if not os.path.exists("./files"):
+        os.makedirs("./files")
     # Start bot
     await dp.start_polling(bot, skip_updates=True)
 
